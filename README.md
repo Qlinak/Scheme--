@@ -18,7 +18,7 @@ Class declarations are expressions in the following special form:
 ```bnf
 (class (<name> { <field> }) <rest>)
 ```
-where `{ }` denotes zero or more repetitions.
+where `{ }` denotes **zero or more** repetitions.
 `<rest>` is evaluated in an environment extended with the declaration of the class `<name>` with fields `{ <field> }`,
 which can be used for object construction, field selection, and pattern matching.
 
