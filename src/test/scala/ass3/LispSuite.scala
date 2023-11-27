@@ -11,6 +11,9 @@ class LispSuite extends munit.FunSuite:
   import Lisp.FieldError
   import Lisp.ClassArityMismatch
   import Lisp.SelError
+  import Lisp.string2lisp
+  import Lisp.SyntaxError
+  import Lisp.MatchError
 
   test("Field selection 1") {
     assertEquals(evaluate("(class (Pair x y) (val p (Pair \"zero\" 0) (sel p x))))))"), "zero")
@@ -21,13 +24,25 @@ class LispSuite extends munit.FunSuite:
     assertEquals(evaluate("(class (Pair x y) (class (Riap y x) (def f (lambda (p) (sel p x)) (val p (Pair 2 3) (val r (Riap 2 3) (* (f p) (f r)))))))"), "6")
   }
 
+  test("Field selection 3") {
+    assertEquals(evaluate("(class (Pair x y) (val a 3 (val b 4 (sel (Pair a b) x))))"), "3")
+  }
+
   test("ClassArityMismatch") {
     val ex = intercept[ClassArityMismatch] {
       assertEquals(evaluate("(class (Pair x y) (val p (Pair \"zero\" 0 0) (sel p x))))))"), "zero")
       assertEquals(evaluate("(class (Pair x y) (val p (Pair \"zero\") (sel p y))))))"), "zero")
     }
 
+    intercept[ClassArityMismatch] {
+      assertEquals(evaluate("(class (Pair x y) (val p (Pair \"zero\") (sel p y))))))"), "zero")
+    }
+
     assertEquals(ex.msg, "wrong arity for class Pair")
+
+    intercept[ClassArityMismatch] {
+      assertEquals(evaluate("(class (Pair x y) (class (Triple x y z) (def prod (lambda (x) (case x ((Pair x y) (* x y)) ((Triple x y) (* (* x y) z)))) (val x (Triple 2 3 7) (prod x)))))"), "42")
+    }
   }
 
   test("FieldError") {
@@ -51,14 +66,47 @@ class LispSuite extends munit.FunSuite:
     assertEquals(ex2.msg, "selection from a non-object: Lambda(<function1>)")
   }
 
+  test("SyntaxError"){
+    intercept[SyntaxError] {
+      assertEquals(evaluate("(class (Pair x y) (class (Triple x y z) (def f (lambda (x) (case x ((Pair x y) (* x y)) (X (cons x nil)))) (val x (Triple 2 3 7) (sel (car (f x)) z)))))"), "7")
+    }
 
-//  test("Pattern matching 1") {
-//    assertEquals(evaluate("(class (Pair x y) (class (Triple x y z) (def prod (lambda (x) (case x ((Pair x y) (* x y)) ((Triple x y z) (* (* x y) z)))) (val x (Triple 2 3 7) (prod x)))))"), "42")
-//  }
-//
-//  test("Pattern matching 2") {
-//    assertEquals(evaluate("(class (Pair x y) (class (Triple x y z) (def f (lambda (x) (case x ((Pair x y) (* x y)) (x (cons x nil)))) (val x (Triple 2 3 7) (sel (car (f x)) z)))))"), "7")
-//  }
+    intercept[SyntaxError] {
+      assertEquals(evaluate("(class (Pair x y) (class (Triple x y z) (def prod (lambda (x) (case x (324 (* x y)) ((Triple x y z) (* (* x y) z)))) (val x (Triple 2 3 7) (prod x)))))"), "42")
+    }
+
+    intercept[SyntaxError] {
+      assertEquals(evaluate("(class (Pair x y) (class (Triple x y z) (def prod (lambda (x) (case x ((Pair x y) (* x y)) ((triple x y z) (* (* x y) z)))) (val x (Triple 2 3 7) (prod x)))))"), "42")
+    }
+  }
+
+  test("MatchError") {
+    intercept[MatchError] {
+      assertEquals(evaluate("(class (Pair x y) (class (Triple x y z) (def f (lambda (x) (case x ((Pair x y) (* x y)))) (val x (Triple 2 3 7) (sel (car (f x)) z)))))"), "7")
+    }
+  }
+
+  test("Pattern matching 1") {
+    assertEquals(evaluate("(class (Pair x y) (class (Triple x y z) (def prod (lambda (x) (case x ((Pair x y) (* x y)) ((Triple x y z) (* (* x y) z)))) (val x (Triple 2 3 7) (prod x)))))"), "42")
+  }
+
+  test("Pattern matching 2") {
+    assertEquals(evaluate("(class (Pair x y) (class (Triple x y z) (def f (lambda (x) (case x ((Pair x y) (* x y)) (x (cons x nil)))) (val x (Triple 2 3 7) (sel (car (f x)) z)))))"), "7")
+  }
+
+  test("Pattern matching 3") {
+    assertEquals(evaluate("(class (Pair x y) (class (Triple x y z) (def f (lambda (x) (case x (x (cons x nil)) ((Pair x y) (* x y)) )) (val x (Pair 2 3) (sel (car (f x)) y)))))"), "3")
+  }
+
+  test("Pattern matching 4") {
+    assertEquals(evaluate("(class (Pair x y) (class (Triple x y z) (def f (lambda (x) (case x ((Pair a b) (Pair b a)) ((Triple a b c) (* (* a b) c)))) (val x (Pair 2 3) (sel (f x) y)))))"), "2")
+  }
+
+  test("Pattern matching 5") {
+    assertEquals(evaluate("(class (Pair x y) (class (Triple x y z) (def f (lambda (x) (case x ((Pair a b) (* a a)) ((Triple a b c) (* (* a b) c)))) (val x (Pair 2 3) (f x)))))"), "4")
+  }
+
+
 //
 //  test("Call-by-need: no need 1") {
 //    assertEquals(evaluate("(def zero (lambda (x) 0) (zero nani))"), "0")
@@ -74,5 +122,9 @@ class LispSuite extends munit.FunSuite:
 
   test("lambda") {
     assertEquals(evaluate("(def f (lambda (x) (* x x)) (f 3))"), "9")
+  }
+
+  test("val expr") {
+    assertEquals(evaluate("(val x 2 (val y 3 (val z 7 (* (* x y) z))))"), "42")
   }
 
