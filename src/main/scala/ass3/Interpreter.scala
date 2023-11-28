@@ -7,12 +7,14 @@ trait Interpreter:
     private lazy val evaluatedExpr: Data = eval(expr)
     def force(): Data =
       evaluatedExpr
+
+    override def toString: String = s"Lazy(${this.force()})"
   }
 
   def eval(x: Data)(using env: Environment[Data])(using tydefs: Environment[List[String]]): Data = x match
-    case _: String => 
+    case _: String =>
       x
-    case _: Int => 
+    case _: Int =>
       x
     case Symbol(name) =>
       if name.head.isUpper
@@ -25,7 +27,7 @@ trait Interpreter:
     case Symbol("if") :: cond :: thenpart :: elsepart :: Nil =>
       if eval(cond) != 0 then eval(thenpart)
       else eval(elsepart)
-    case Symbol("quote") :: y :: Nil => 
+    case Symbol("quote") :: y :: Nil =>
       y
     case Symbol("lambda") :: params :: body :: Nil =>
       mkLambda(asList(params).map(paramName), body)
@@ -82,7 +84,7 @@ trait Interpreter:
           val res: Map[Any, Any] = fields.zip(operands.map(eval)).toMap // Map(fieldName -> value)
           res + ("class"-> operator.asInstanceOf[Symbol].name) // also store class name
         else throw ClassArityMismatch(s"wrong arity for class ${operator.asInstanceOf[Symbol].name}")
-      case x => 
+      case x =>
         throw AppError("application of a non-function: " + x + " to " + operands)
 
   def evaluate(x: Data): Data = eval(x)(using globalEnv)(using emptyEnvironment)

@@ -14,6 +14,7 @@ class LispSuite extends munit.FunSuite:
   import Lisp.string2lisp
   import Lisp.SyntaxError
   import Lisp.MatchError
+  import Lisp.Lazy
 
   test("Field selection 1") {
     assertEquals(evaluate("(class (Pair x y) (val p (Pair \"zero\" 0) (sel p x))))))"), "zero")
@@ -138,6 +139,10 @@ class LispSuite extends munit.FunSuite:
     assertEquals(evaluate("(def id (lambda (x) x) (def zero (lambda (x) 0) (zero (id (* 2 2)))))"), "0")
   }
 
+  test("Call-by-need: def 4") {
+    assertEquals(evaluate("(def sq (lambda (x) (* x x)) (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq 1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))"), "1")
+  }
+
   test("factorial") {
     assertEquals(evaluate("(def factorial (lambda (n) (if (= n 0) 1 (* n (factorial (- n 1))))) (factorial 3))"), "6")
   }
@@ -149,4 +154,38 @@ class LispSuite extends munit.FunSuite:
   test("val expr") {
     assertEquals(evaluate("(val x 2 (val y 3 (val z 7 (* (* x y) z))))"), "42")
   }
+
+  test("ge val ="){
+    assertEquals(evaluate("(val x (= 3 3) (val y (= 2 2) (= x x)))"), "1")
+  }
+
+  test("ge null?") {
+    assertEquals(evaluate("(val x (* 3 3) (null? x))"), "0")
+    assertEquals(evaluate("(val x (* 3 3) (null? nil))"), "1")
+  }
+
+  test("ge list manipulation 1") {
+    assertEquals(evaluate("(def f (lambda (x) (cons x nil)) (car (f 5)))"), "5")
+    assertEquals(evaluate("(car (cons 9 (cons 4 (cons 3(cons 2 nil)))))"), "9")
+  }
+
+  test("ge list manipulation 2") {
+    assertEquals(evaluate("(car (cdr (cons 5 (cons 4 (cons 3 nil)))))"), "4")
+  }
+
+  test("ge list manipulation 3") {
+    assertEquals(evaluate("(car (cdr (cdr (cons 5 (cons 4 (cons 3 nil))))))"), "3")
+  }
+
+  test("ge list manipulation 4") {
+    intercept[scala.MatchError] {
+      assertEquals(evaluate("(car (cdr (cdr (cdr (cons 5 (cons 4 (cons 3 nil)))))))"), "3")
+    }
+  }
+
+  test("ge +") {
+    assertEquals(evaluate("(+ \"ne\" \"ville\")"), "neville")
+    assertEquals(evaluate("(+ 3 4)"), "7")
+  }
+
 
