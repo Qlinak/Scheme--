@@ -107,11 +107,19 @@ class LispSuite extends munit.FunSuite:
   }
 
   test("Pattern matching 6") {
-    assertEquals(evaluate("(class (Pair x y) (case (Pair 3 4) ((Pair a b) (* a b)))"), "12")
+    assertEquals(evaluate("(class (Pair x y) (case (Pair 3 4) ((Pair a b) (* a b))))"), "12")
   }
 
   test("Pattern matching 7") {
     assertEquals(evaluate("(class (Pair x y) (case (Pair 1 2) ((Triple a b c) (* c c)) ((Pair a b) (* a b))))"), "2")
+  }
+
+  test("call by need val 01") {
+    assertEquals(evaluate("(val x (* 3 5) (val y (- 2 1) y))"), "1")
+  }
+
+  test("call by need val 02") {
+    assertEquals(evaluate("(val x (* 2 2) (* x x))"), "16")
   }
 
 //  test("Call-by-need: no need 1") {

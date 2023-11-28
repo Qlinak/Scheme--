@@ -3,6 +3,11 @@ package ass3
 trait Interpreter:
   self: LispImpl =>
   import language.deprecated.symbolLiterals
+  class Lazy(expr: => Data)(using env: Environment[Data])(using tydefs: Environment[List[String]]) {
+    private lazy val evaluatedExpr: Data = eval(expr)
+    def force(): Data =
+      evaluatedExpr
+  }
 
   def eval(x: Data)(using env: Environment[Data])(using tydefs: Environment[List[String]]): Data = x match
     case _: String => 
@@ -12,9 +17,9 @@ trait Interpreter:
     case Symbol(name) =>
       if name.head.isUpper
       then tydefs.lookup(name)
-      else env.lookup(name)
+      else forceLazy(env.lookup(name))
     case Symbol("val") :: param :: expr :: rest :: Nil =>
-      eval(rest)(using env.extend(paramName(param), eval(expr)))
+      eval(rest)(using env.extend(paramName(param), Lazy(expr)))
     case Symbol("def") :: param :: expr :: rest :: Nil =>
       eval(rest)(using env.extendRec(paramName(param), env1 => eval(expr)(using env1)))
     case Symbol("if") :: cond :: thenpart :: elsepart :: Nil =>
@@ -26,7 +31,7 @@ trait Interpreter:
       mkLambda(asList(params).map(paramName), body)
     case Symbol("class") :: nameNFields :: rest :: Nil => nameNFields match
       case name :: fields =>
-        eval(rest)(using env)(using tydefs.extendRec(className(name), _ => fields.map(fieldName)))
+        eval(rest)(using env)(using tydefs.extend(className(name), fields.map(fieldName)))
     case Symbol("sel") :: expr :: field :: Nil =>
       val res = eval(expr)
       res match
@@ -65,7 +70,7 @@ trait Interpreter:
               else eval(Symbol("case") :: scrut :: rest)
             case Symbol(name) => // no params
               if name.head.isLower
-              then eval(expr)(using env.extendRec(name, _ => map1))
+              then eval(expr)(using env.extend(name, map1))
               else throw SyntaxError(s"invalid case branch: $curBranch")
             case _ => throw SyntaxError(s"invalid case branch: $curBranch")
     case operator :: operands => eval(operator) match

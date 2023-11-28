@@ -13,6 +13,10 @@ trait Helpers:
     case Symbol(name) if name.head.isUpper == upper => name
     case _ => throw SyntaxError("malformed " + s + ": " + x)
 
+  def forceLazy(x: Data): Data = x match
+    case a : Lazy => a.force()
+    case b => b
+
   val paramName = toName("parameter", false)
   val fieldName = toName("field", false)
   val className = toName("class", true)
