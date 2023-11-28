@@ -42,7 +42,7 @@ trait Interpreter:
           field match
             case Symbol(name) =>
               try {
-                map(name)
+                forceLazy(map(name))
               } catch {
                 case _: NoSuchElementException => throw FieldError(s"class ${map("class")} has no field $name")
               }
@@ -50,8 +50,8 @@ trait Interpreter:
         case x => throw SelError(s"selection from a non-object: $x")
     case Symbol("case") :: scrut :: branches =>
       val res = eval(scrut)
-      val map1 = res.asInstanceOf[Map[String, Any]]
-      if map1 == null
+      val field2ValMap = res.asInstanceOf[Map[String, Any]]
+      if field2ValMap == null
       then throw MatchError(s"match error on: $scrut")
       else branches match
         case Nil => throw MatchError(s"match error on: $scrut")
@@ -60,19 +60,19 @@ trait Interpreter:
             case name :: params => // has params
               if name.asInstanceOf[Symbol].name.head.isLower
               then throw SyntaxError(s"invalid case branch: $curBranch")
-              else if name.asInstanceOf[Symbol].name == map1("class")
+              else if name.asInstanceOf[Symbol].name == field2ValMap("class")
               then
-                val fields = tydefs.lookup(map1("class").toString)
+                val fields = tydefs.lookup(field2ValMap("class").toString)
                 if params.length == fields.length
                 then
-                  val map2 = params.map(p => p.asInstanceOf[Symbol].name).zip(fields).toMap
-                  val map3 = map2.map { case (key, value) => key -> map1(value) }
-                  eval(expr)(using env.extendMulti(map3.keys.toList, map3.values.toList))
-                else throw ClassArityMismatch(s"wrong arity for class ${map1("class")}")
+                  val arg2FieldMap = params.map(p => p.asInstanceOf[Symbol].name).zip(fields).toMap
+                  val arg2ValMap = arg2FieldMap.map { case (key, value) => key -> forceLazy(field2ValMap(value)) }
+                  eval(expr)(using env.extendMulti(arg2ValMap.keys.toList, arg2ValMap.values.toList))
+                else throw ClassArityMismatch(s"wrong arity for class ${field2ValMap("class")}")
               else eval(Symbol("case") :: scrut :: rest)
             case Symbol(name) => // no params
               if name.head.isLower
-              then eval(expr)(using env.extend(name, map1))
+              then eval(expr)(using env.extend(name, field2ValMap))
               else throw SyntaxError(s"invalid case branch: $curBranch")
             case _ => throw SyntaxError(s"invalid case branch: $curBranch")
     case operator :: operands => eval(operator) match
@@ -81,7 +81,7 @@ trait Interpreter:
       case fields @ _ :: _ => // fields of a type class
         if fields.length == operands.length
         then
-          val res: Map[Any, Any] = fields.zip(operands.map(eval)).toMap // Map(fieldName -> value)
+          val res: Map[Data, Data] = fields.zip(operands.map(applyLazy)).toMap // Map(fieldName -> value)
           res + ("class"-> operator.asInstanceOf[Symbol].name) // also store class name
         else throw ClassArityMismatch(s"wrong arity for class ${operator.asInstanceOf[Symbol].name}")
       case x =>

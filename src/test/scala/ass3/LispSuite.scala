@@ -143,6 +143,22 @@ class LispSuite extends munit.FunSuite:
     assertEquals(evaluate("(def sq (lambda (x) (* x x)) (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq (sq 1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))"), "1")
   }
 
+  test("Call-by-need: object 1") {
+    assertEquals(evaluate("(class (Pair x y) (def zero (lambda (x) 0) (val x (Pair (* 2 2) (* 3 3)) (zero (sel x x)))))"), "0")
+  }
+
+  test("Call-by-need: object 2") {
+    assertEquals(evaluate("(class (Pair x y) (def zero (lambda (x) 0) (case (Pair (- 3 2) (- 2 3)) ((Pair a b) (zero a)))))"), "0")
+  }
+
+  test("Call-by-need: object 3") {
+    assertEquals(evaluate("(class (Pair x y) (val x (Pair (- 5 3) (/ 5 5)) (* (sel x x) (sel x x))))"), "4")
+  }
+
+  test("Call-by-need: object 4") {
+    assertEquals(evaluate("(class (Pair x y) (case (Pair (- 5 3) (/ 5 5)) ((Pair a b) (* a a))))"), "4")
+  }
+
   test("factorial") {
     assertEquals(evaluate("(def factorial (lambda (n) (if (= n 0) 1 (* n (factorial (- n 1))))) (factorial 3))"), "6")
   }
