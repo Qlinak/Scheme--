@@ -19,7 +19,7 @@ trait Interpreter:
       then tydefs.lookup(name)
       else forceLazy(env.lookup(name))
     case Symbol("val") :: param :: expr :: rest :: Nil =>
-      eval(rest)(using env.extend(paramName(param), Lazy(expr)))
+      eval(rest)(using env.extend(paramName(param), applyLazy(expr)))
     case Symbol("def") :: param :: expr :: rest :: Nil =>
       eval(rest)(using env.extendRec(paramName(param), env1 => eval(expr)(using env1)))
     case Symbol("if") :: cond :: thenpart :: elsepart :: Nil =>
@@ -74,8 +74,8 @@ trait Interpreter:
               else throw SyntaxError(s"invalid case branch: $curBranch")
             case _ => throw SyntaxError(s"invalid case branch: $curBranch")
     case operator :: operands => eval(operator) match
-      case Lambda(f) => 
-        f(operands.map(eval))
+      case Lambda(f) =>
+        f(operands.map(applyLazy))
       case fields @ _ :: _ => // fields of a type class
         if fields.length == operands.length
         then

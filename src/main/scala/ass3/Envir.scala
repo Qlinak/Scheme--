@@ -24,23 +24,40 @@ trait Envir:
   val globalEnv =
     emptyEnvironment[Data]
     .extend("=", Lambda {
-      case List(arg1, arg2) => if arg1 == arg2 then 1 else 0})
+      case List(arg1: Lazy, arg2: Lazy) => if arg1.force() == arg2.force() then 1 else 0})
     .extend("+", Lambda {
-      case List(arg1: Int, arg2: Int) => arg1 + arg2
-      case List(arg1: String, arg2: String) => arg1 + arg2})
+      case List(arg1: Lazy, arg2: Lazy) =>
+        val r1 = arg1.force()
+        val r2 = arg2.force()
+        if r1.isInstanceOf[Int] && r2.isInstanceOf[Int]
+        then r1.asInstanceOf[Int] + r2.asInstanceOf[Int]
+        else if r1.isInstanceOf[String] && r2.isInstanceOf[String]
+        then r1.asInstanceOf[String] + r2.asInstanceOf[String]
+        else throw MatchError(s"not support + for $r1 and $r2")
+    })
     .extend("-", Lambda {
-      case List(arg1: Int, arg2: Int) => arg1 - arg2})
+      case List(arg1: Lazy, arg2: Lazy) => arg1.force().asInstanceOf[Int] - arg2.force().asInstanceOf[Int]})
     .extend("*", Lambda {
-      case List(arg1: Int, arg2: Int) => arg1 * arg2})
+      case List(arg1: Lazy, arg2: Lazy) => arg1.force().asInstanceOf[Int] * arg2.force().asInstanceOf[Int]})
     .extend("/", Lambda {
-      case List(arg1: Int, arg2: Int) => arg1 / arg2})
+      case List(arg1: Lazy, arg2: Lazy) => arg1.force().asInstanceOf[Int] / arg2.force().asInstanceOf[Int]})
     .extend("nil", Nil)
     .extend("cons", Lambda {
       case List(arg1, arg2) => arg1 :: asList(arg2)})
     .extend("car", Lambda {
-      case List(x :: xs) => x})
+      case List(x: Lazy) =>
+        val resList = x.force()
+        try{
+          asList(resList).head.asInstanceOf[Lazy].force()
+        } catch {
+          case _: SyntaxError => throw scala.MatchError("asList fails in car")
+          case _: ClassCastException => throw scala.MatchError("cannot cast head into Lazy in car")
+        }
+      case List(x :: xs) => x.asInstanceOf[Lazy].force()
+    })
     .extend("cdr", Lambda {
       case List(x :: xs) => xs})
     .extend("null?", Lambda {
       case List(Nil) => 1
+      case List(x: Lazy) => if x.force() == Nil then 1 else 0
       case _ => 0})

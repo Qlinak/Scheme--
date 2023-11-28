@@ -126,17 +126,17 @@ class LispSuite extends munit.FunSuite:
     assertEquals(evaluate("(val x (* 2 2) (* (* x x) x))"), "64")
   }
 
-//  test("Call-by-need: no need 1") {
-//    assertEquals(evaluate("(def zero (lambda (x) 0) (zero nani))"), "0")
-//  }
-//
-//  test("Call-by-need: no need 2") {
-//    assertEquals(evaluate("(class (Just x) (val x (Just nani) 0))"), "0")
-//  }
-//
-//  test("Call-by-need: no need 3") {
-//    assertEquals(evaluate("(def id (lambda (x) x) (def zero (lambda (x) 0) (zero (id (* 2 2)))))"), "0")
-//  }
+  test("Call-by-need: def 1") {
+    assertEquals(evaluate("(def zero (lambda (x) 0) (zero nani))"), "0")
+  }
+
+  test("Call-by-need: def 2") {
+    assertEquals(evaluate("(class (Just x) (val x (Just nani) 0))"), "0")
+  }
+
+  test("Call-by-need: def 3") {
+    assertEquals(evaluate("(def id (lambda (x) x) (def zero (lambda (x) 0) (zero (id (* 2 2)))))"), "0")
+  }
 
   test("factorial") {
     assertEquals(evaluate("(def factorial (lambda (n) (if (= n 0) 1 (* n (factorial (- n 1))))) (factorial 3))"), "6")
