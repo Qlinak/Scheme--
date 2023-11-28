@@ -122,6 +122,10 @@ class LispSuite extends munit.FunSuite:
     assertEquals(evaluate("(val x (* 2 2) (* x x))"), "16")
   }
 
+  test("call by need val 03") {
+    assertEquals(evaluate("(val x (* 2 2) (* (* x x) x))"), "64")
+  }
+
 //  test("Call-by-need: no need 1") {
 //    assertEquals(evaluate("(def zero (lambda (x) 0) (zero nani))"), "0")
 //  }
