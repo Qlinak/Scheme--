@@ -106,14 +106,24 @@ class LispSuite extends munit.FunSuite:
     assertEquals(evaluate("(class (Pair x y) (class (Triple x y z) (def f (lambda (x) (case x ((Pair a b) (* a a)) ((Triple a b c) (* (* a b) c)))) (val x (Pair 2 3) (f x)))))"), "4")
   }
 
+  test("Pattern matching 6") {
+    assertEquals(evaluate("(class (Pair x y) (case (Pair 3 4) ((Pair a b) (* a b)))"), "12")
+  }
 
-//
+  test("Pattern matching 7") {
+    assertEquals(evaluate("(class (Pair x y) (case (Pair 1 2) ((Triple a b c) (* c c)) ((Pair a b) (* a b))))"), "2")
+  }
+
 //  test("Call-by-need: no need 1") {
 //    assertEquals(evaluate("(def zero (lambda (x) 0) (zero nani))"), "0")
 //  }
 //
 //  test("Call-by-need: no need 2") {
 //    assertEquals(evaluate("(class (Just x) (val x (Just nani) 0))"), "0")
+//  }
+//
+//  test("Call-by-need: no need 3") {
+//    assertEquals(evaluate("(def id (lambda (x) x) (def zero (lambda (x) 0) (zero (id (* 2 2)))))"), "0")
 //  }
 
   test("factorial") {
