@@ -2,9 +2,9 @@
 A interpreter for scripting language Scheme-- (resembling Lisp) written in Scala. It has the following features
 1. Basic Lisp-like evaluation, including val binding, def binding, recursive calls and list manipulation
 2. [Object construction](#object-construction)
-3. [Object fields selection](#FieldSelection)
-4. [Pattern matching](#PatternMatching)
-5. [Call by need evaulation](#CallByNeed)
+3. [Object fields selection](#field-selection)
+4. [Pattern matching](#pattern-matching)
+5. [Call by need evaulation](#call-by-need)
 
 
 ## Object construction
