@@ -1,6 +1,6 @@
 # Lisp interpreter
 A interpreter for scripting language Scheme-- (resembling Lisp) written in Scala. It has the following features
-1. Basic Lisp-like evaluation, including val binding, def binding, recursive calls and list manipulation
+1. Basic [Lisp](https://en.wikipedia.org/wiki/Lisp_(programming_language))-like evaluation, including val binding, def binding, recursive calls and list manipulation
 2. [Object construction](#object-construction)
 3. [Object fields selection](#field-selection)
 4. [Pattern matching](#pattern-matching)
@@ -119,13 +119,3 @@ In the following programs, the expression `<expr1>` is evaluated once, while `<e
 (class (Pair x y) (val x (Pair <expr1> <expr2>) (* (sel x x) (sel x x))))
 (class (Pair x y) (case (Pair <expr1> <expr2>) ((Pair a b) (* a a))))
 ```
-
-To implement call-by-need, you may define a wrapper around arguments.
-You may also want to wrap arguments in these wrappers before applying a function or constructor to them,
-change what the interpreter does when it encounters these wrappers,
-and change the builtin functions to take these wrappers.
-
-    Q:  When exactly is an evaluation performed under call-by-need?
-
-    A:  (1) Evaluating a variable, and (2) applying a variable to the built-in functions.
-        Arguments to all built-in functions are evaluated.
