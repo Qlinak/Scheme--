@@ -1,13 +1,13 @@
 # Lisp interpreter
 A interpreter for scripting language Scheme-- (resembling Lisp) written in Scala. It has the following features
 1. Basic Lisp-like evaluation, including val binding, def binding, recursive calls and list manipulation
-2. [Object construction](#ObjectConstruction)
+2. [Object construction](#object-construction)
 3. [Object fields selection](#FieldSelection)
 4. [Pattern matching](#PatternMatching)
 5. [Call by need evaulation](#CallByNeed)
 
 
-## Object construction <a name="ObjectConstruction"></a>
+## Object construction
 
 An object of a class can be constructed by applying the constructor to a sequence of arguments.
 For example, the following constructs an object of class `Pair` with the values `1` and `2` for fields `x` and `y` respectively:
@@ -29,7 +29,7 @@ The behavior of evaluating an unapplied constructor is unspecified. For example,
 (class (Pair x y) Pair)
 ```
 
-## Field selection <a name="FieldSelection"></a>
+## Field selection
 
 Fields of an object can be accessed using the field selection special form:
 ```clojure
@@ -42,7 +42,7 @@ If `<expr>` evaluates to an object `o` of class `C`, and
 (2) `C` does not have field `<field>`, then a `FieldError` with message `"class C has no field <field>"` is thrown.
 If `<expr>` evaluates to something other than an object, then a `SelError` with the message `"selection from a non-object: o"` is thrown.
 
-## Pattern matching <a name="PatternMatching"></a>
+## Pattern matching
 
 The class of an object can be inspected at runtime using pattern matching, with the following special form:
 ```bnf
@@ -80,7 +80,7 @@ For example, in the following expression, `<expr>` is evaluated in an environmen
 
 If a branch does not match either form, then a `SyntaxError` with the message `"invalid case branch: <branch>"` is thrown.
 
-## Call-by-need <a name="CallByNeed"></a>
+## Call-by-need
 
 Call-by-need is similar to call-by-name, where the arguments are not evaluated until their value is accessed.
 However, unlike call-by-name, the arguments are only evaluated once,
